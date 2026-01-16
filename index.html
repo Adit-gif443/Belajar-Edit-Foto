@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolase Foto By Aditya Hermansyah</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <style>
+      body {
+        background: radial-gradient(circle at top, #1e293b, #020617);
+        min-height: 100vh;
+      }
+
+      /* Animasi slide-in dari kanan */
+      @keyframes slideInRight {
+        0% {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* Animasi slide-out ke kanan */
+      @keyframes slideOutRight {
+        0% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+      }
+    </style>
+  </head>
+
+  <body class="text-white flex flex-col items-center px-4 relative">
+    <!-- HEADER -->
+    <header class="text-center mt-12 mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-pink-400">
+        Welcome To Kolase Foto By Aditya Hermansyah
+      </h1>
+      <p class="text-sm text-gray-300 mt-2">
+        Kolase Foto Dengan Mudah Dan Simple.
+      </p>
+    </header>
+
+    <!-- UPLOAD BOX -->
+    <div
+      class="w-full max-w-xl border border-dashed border-pink-400/40 rounded-xl p-6 text-center mb-10"
+    >
+      <p class="mb-2">
+        Cara 1: Copy Gambar & Tekan
+        <span class="bg-blue-600 px-2 py-1 rounded text-sm">Ctrl + V</span>
+      </p>
+
+      <p class="text-gray-400 my-3">ATAU</p>
+
+      <label
+        class="inline-flex items-center gap-2 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 px-4 py-2 rounded-full cursor-pointer"
+      >
+        📁 <span>Cara 2: Pilih Foto Manual</span>
+        <input type="file" id="fileInput" multiple accept="image/*" hidden />
+      </label>
+
+      <p class="text-sm text-gray-400 mt-3">
+        Foto terpilih: <span id="counter">0</span>/4
+      </p>
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="collageWrapper" class="bg-white rounded-2xl p-4 shadow-xl mb-6">
+      <div
+        id="collage"
+        class="grid grid-cols-2 gap-2 w-[280px] h-[300px]"
+      ></div>
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="flex gap-4 mb-10">
+      <button
+        onclick="download('png')"
+        class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-full font-semibold"
+      >
+        Download PNG
+      </button>
+      <button
+        onclick="download('jpg')"
+        class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-full font-semibold"
+      >
+        Download JPG
+      </button>
+    </div>
+
+    <!-- MODERN POPUP NOTIFIKASI -->
+    <div
+      id="downloadPopup"
+      class="fixed top-5 right-5 bg-white/95 backdrop-blur-md text-gray-900 px-6 py-4 rounded-xl shadow-lg flex items-center space-x-4 max-w-xs opacity-0 pointer-events-none"
+      role="alert"
+      style="transform: translateX(100%); transition: none"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 text-green-600 flex-shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M5 13l4 4L19 7"
+        />
+      </svg>
+      <div class="flex-1">
+        <p class="font-semibold text-lg">Foto Sudah Terdownload</p>
+        <p class="text-sm text-gray-600 text-bold">
+          Dan Halaman Akan Di refresh
+        </p>
+      </div>
+      <button
+        id="popupCloseBtn"
+        aria-label="Close popup"
+        class="text-gray-500 hover:text-gray-800 transition"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <script>
+      const collage = document.getElementById("collage");
+      const counter = document.getElementById("counter");
+      const fileInput = document.getElementById("fileInput");
+      const collageWrapper = document.getElementById("collageWrapper");
+      const popup = document.getElementById("downloadPopup");
+      const popupCloseBtn = document.getElementById("popupCloseBtn");
+
+      let images = [];
+      const MAX_IMAGE = 4;
+      let refreshTimeout;
+
+      /* Update Grid Layout */
+      function updateGrid() {
+        const count = images.length;
+        collage.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+        collage.style.width = `${count * 140}px`; // ke samping
+      }
+
+      /* Update Counter */
+      function updateCounter() {
+        counter.textContent = images.length;
+      }
+
+      /* Tambah Image */
+      function addImage(src) {
+        if (images.length >= MAX_IMAGE) return;
+
+        const img = document.createElement("img");
+        img.src = src;
+        img.className = "w-full h-full object-cover rounded";
+
+        collage.appendChild(img);
+        images.push(src);
+
+        updateGrid();
+        updateCounter();
+      }
+
+      /* Upload Manual */
+      fileInput.addEventListener("change", () => {
+        [...fileInput.files].forEach((file) => {
+          if (images.length >= MAX_IMAGE) return;
+
+          const reader = new FileReader();
+          reader.onload = (e) => addImage(e.target.result);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      /* Paste Image (WhatsApp / Screenshot) */
+      document.addEventListener("paste", (e) => {
+        const items = e.clipboardData.items;
+
+        for (let item of items) {
+          if (item.type.includes("image")) {
+            if (images.length >= MAX_IMAGE) return;
+
+            const file = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = (e) => addImage(e.target.result);
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+
+      /* Fungsi tampilkan popup dengan animasi modern */
+      function showPopupAndRefresh() {
+        // Reset animasi dan tampilkan popup
+        popup.style.opacity = "1";
+        popup.style.pointerEvents = "auto";
+        popup.style.transition = "transform 0.7s ease, opacity 0.7s ease";
+        popup.style.transform = "translateX(0)";
+
+        // Setelah 2 detik reload halaman
+        refreshTimeout = setTimeout(() => {
+          popup.style.transform = "translateX(100%)";
+          popup.style.opacity = "0";
+          popup.style.pointerEvents = "none";
+
+          setTimeout(() => {
+            location.reload();
+          }, 300);
+        }, 2000);
+      }
+
+      /* Close popup manual */
+      popupCloseBtn.addEventListener("click", () => {
+        clearTimeout(refreshTimeout);
+        popup.style.transform = "translateX(100%)";
+        popup.style.opacity = "0";
+        popup.style.pointerEvents = "none";
+      });
+
+      /* Download HD */
+      async function download(type) {
+        const canvas = await html2canvas(collageWrapper, {
+          scale: 4,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        });
+
+        const mime = type === "jpg" ? "image/jpeg" : "image/png";
+        const fileName = `kolase-${images.length}-foto.${type}`;
+
+        canvas.toBlob(
+          async (blob) => {
+            /* 🔍 Deteksi Mobile */
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(
+              navigator.userAgent,
+            );
+
+            /* 💻 DESKTOP → BUKA FILE EXPLORER */
+            if (!isMobile && window.showSaveFilePicker) {
+              try {
+                const handle = await window.showSaveFilePicker({
+                  suggestedName: fileName,
+                  types: [
+                    {
+                      description: "Image File",
+                      accept: { [mime]: [`.${type}`] },
+                    },
+                  ],
+                });
+
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+              } catch (err) {
+                console.log("Download dibatalkan");
+                return;
+              }
+            } else {
+              /* 📱 MOBILE → DOWNLOAD BIASA */
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = fileName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
+
+            showPopupAndRefresh();
+          },
+          mime,
+          1.0,
+        );
+      }
+    </script>
+  </body>
+</html>
