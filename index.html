@@ -14,25 +14,63 @@
     <style>
       body {
         background: radial-gradient(circle at top, #1e293b, #020617);
-        min-height: 125vh;
-        zoom: 80%;
+        min-height: 100vh;
       }
-      /* Mengatur agar gambar dalam kolase tetap square */
-      .collage-item {
-        aspect-ratio: 1 / 1;
-        object-fit: cover;
+
+      /* Wrapper mengikuti lebar konten agar tidak lebar sendirian di Desktop */
+      #collageWrapper {
+        width: fit-content;
+        max-width: 95vw;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Pengaturan Grid Preview */
+      #collage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap; /* Tetap satu baris */
+        gap: 5px;
+        padding: 10px;
+        width: fit-content;
       }
 
       .image-container {
         position: relative;
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      /* Logika agar 4 foto muat di HP tanpa scroll */
+      .collage-item {
+        width: 21vw; /* 4 foto x 21% = 84% layar, sisa untuk gap & padding */
+        height: auto;
+        max-width: 200px; /* Batas maksimal di Desktop */
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 4px;
+      }
+
+      /* Penyesuaian untuk layar Desktop agar tidak terlalu kecil */
+      @media (min-width: 640px) {
+        .collage-item {
+          width: auto;
+          min-width: 100px;
+          max-width: 250px;
+        }
+        #collage {
+          gap: 10px;
+        }
       }
 
       .delete-btn {
         position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #ff4d4d;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
         color: white;
         border-radius: 50%;
         width: 22px;
@@ -40,47 +78,38 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 10px;
         cursor: pointer;
         border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        z-index: 10;
-      }
-
-      .delete-btn:hover {
-        background: #cc0000;
-        transform: scale(1.1);
+        z-index: 20;
       }
     </style>
   </head>
 
-  <body class="text-white flex flex-col items-center px-4 pb-10 relative">
-    <header class="text-center mt-8 mb-6">
+  <body class="text-white flex flex-col items-center px-4 pb-12 relative">
+    <header class="text-center mt-10 mb-8">
       <h1 class="text-2xl md:text-4xl font-bold text-pink-400 px-2">
         Welcome To Kolase Foto By Aditya Hermansyah
       </h1>
       <p class="text-xs md:text-sm text-gray-300 mt-2">
-        Kolase Foto Dengan Mudah Dan Simple.
+        Kolase Foto Dengan Mudah Dan Simple Tanpa Terpotong.
       </p>
     </header>
 
     <div
       class="w-full max-w-xl border border-dashed border-pink-400/40 rounded-xl p-6 text-center mb-8 bg-slate-900/50"
     >
-      <p class="text-sm md:text-base mb-2">
+      <p class="text-sm mb-2">
         Cara 1: Copy Gambar & Tekan
         <span class="bg-blue-600 px-2 py-1 rounded text-xs">Ctrl + V</span>
       </p>
-
       <p class="text-gray-500 my-2 text-xs">ATAU</p>
-
       <label
         class="inline-flex items-center gap-2 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400 px-5 py-2.5 rounded-full cursor-pointer transition-all active:scale-95"
       >
         <span>📁 Pilih Foto Manual</span>
         <input type="file" id="fileInput" multiple accept="image/*" hidden />
       </label>
-
       <p class="text-xs text-gray-400 mt-4">
         Foto terpilih:
         <span id="counter" class="font-bold text-pink-400">0</span>/4
@@ -89,16 +118,10 @@
 
     <div
       id="collageWrapper"
-      class="bg-white rounded-xl p-2 md:p-4 shadow-2xl mb-8 w-fit max-w-full overflow-hidden"
+      class="bg-white rounded-xl shadow-2xl mb-8 overflow-hidden"
     >
-      <div
-        id="collage"
-        class="flex gap-1 md:gap-2 min-h-[150px] md:min-h-[250px]"
-      >
-        <div
-          id="placeholder"
-          class="flex items-center justify-center w-[250px] h-[250px] text-gray-300 italic text-sm"
-        >
+      <div id="collage">
+        <div id="placeholder" class="text-gray-400 italic text-sm py-10 px-10">
           Belum ada foto
         </div>
       </div>
@@ -107,13 +130,13 @@
     <div class="flex flex-col sm:flex-row gap-4 w-full max-w-xs sm:max-w-md">
       <button
         onclick="download('png')"
-        class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 px-6 py-3 rounded-xl font-semibold transition-all shadow-lg"
+        class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-semibold shadow-lg transition-all"
       >
         Download PNG
       </button>
       <button
         onclick="download('jpg')"
-        class="flex-1 bg-red-500 hover:bg-red-600 active:scale-95 px-6 py-3 rounded-xl font-semibold transition-all shadow-lg"
+        class="flex-1 bg-red-500 hover:bg-red-600 py-3 rounded-xl font-semibold shadow-lg transition-all"
       >
         Download JPG
       </button>
@@ -123,10 +146,10 @@
       id="downloadPopup"
       class="fixed top-5 right-5 left-5 sm:left-auto bg-white text-gray-900 px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-4 max-w-xs opacity-0 pointer-events-none z-50 transition-all duration-500 transform translate-x-full"
     >
-      <div class="bg-green-100 p-2 rounded-full">
+      <div class="bg-green-500 text-white p-1 rounded-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6 text-green-600"
+          class="h-5 w-5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -134,103 +157,72 @@
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            stroke-width="2"
+            stroke-width="3"
             d="M5 13l4 4L19 7"
           />
         </svg>
       </div>
-      <div class="flex-1">
-        <p class="font-bold">Berhasil!</p>
-        <p class="text-xs text-gray-600">Halaman akan segera dimuat ulang.</p>
+      <div>
+        <p class="font-bold text-sm">Download Berhasil!</p>
+        <p class="text-[10px] text-gray-500">Halaman akan dimuat ulang...</p>
       </div>
     </div>
 
     <script>
+      const config = { max: 4 };
       const collage = document.getElementById("collage");
       const counter = document.getElementById("counter");
       const fileInput = document.getElementById("fileInput");
       const collageWrapper = document.getElementById("collageWrapper");
-      const placeholder = document.getElementById("placeholder");
       const popup = document.getElementById("downloadPopup");
-
       let images = [];
-      const MAX_IMAGE = 4;
 
-      /* 1. Perbaikan Update Grid agar Flex-wrap (Responsif ke bawah) */
-      function updateGrid() {
-        if (images.length > 0) {
-          const placeholder = document.getElementById("placeholder");
-          if (placeholder) placeholder.remove();
-        }
-
-        // Gunakan Flexbox wrap agar jika tidak muat di HP, foto otomatis turun ke bawah
-        collage.className = "flex gap-2 justify-center items-center";
-        collage.style.width = "auto"; // Reset lebar agar tidak memanjang ke samping terus
-        collage.style.maxWidth = "100%";
-      }
-
-      /* 2. Tambah Image dengan ID yang Unik */
       function addImage(src) {
-        if (images.length >= MAX_IMAGE) return;
+        if (images.length >= config.max) return;
 
-        const imageId = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const placeholder = document.getElementById("placeholder");
+        if (placeholder) placeholder.remove();
 
+        const imageId = `img-${Date.now()}`;
         const wrapper = document.createElement("div");
-        wrapper.className = "image-container relative";
+        wrapper.className = "image-container";
         wrapper.id = imageId;
 
         const img = document.createElement("img");
         img.src = src;
-        // w-[120px] di HP agar bisa muat 2 kolom (grid 2x2)
-        img.className =
-          "collage-item rounded shadow-sm w-[300px] h-[400px] sm:w-[200px] sm:h-[350px] object-cover";
+        img.className = "collage-item shadow-sm";
 
         const delBtn = document.createElement("div");
         delBtn.innerHTML = "✕";
-        delBtn.className = "delete-btn"; // Gunakan CSS yang kita buat sebelumnya
-        delBtn.onclick = function () {
-          removeImage(imageId, src);
+        delBtn.className = "delete-btn";
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeImage(imageId);
         };
 
         wrapper.appendChild(img);
         wrapper.appendChild(delBtn);
         collage.appendChild(wrapper);
-
-        // Simpan objek berisi ID dan Source agar hapusnya akurat
         images.push({ id: imageId, src: src });
-
-        updateGrid();
         updateCounter();
       }
 
-      /* 3. Fungsi Hapus yang Akurat (Hanya satu foto) */
-      function removeImage(id, src) {
-        // Hapus elemen berdasarkan ID uniknya saja
-        const element = document.getElementById(id);
-        if (element) {
-          element.remove();
-        }
-
-        // Filter array images: buang yang ID-nya cocok
-        images = images.filter((imgObj) => imgObj.id !== id);
-
-        // Jika kosong, kembalikan teks panduan
+      function removeImage(id) {
+        document.getElementById(id).remove();
+        images = images.filter((img) => img.id !== id);
         if (images.length === 0) {
           collage.innerHTML =
-            '<div id="placeholder" class="flex items-center justify-center w-[250px] h-[250px] text-gray-300 italic text-sm">Belum ada foto</div>';
+            '<div id="placeholder" class="text-gray-400 italic text-sm py-10 px-10">Belum ada foto</div>';
         }
-
         updateCounter();
       }
 
-      /* 4. Update Counter (Sekarang menghitung panjang array objek) */
       function updateCounter() {
         counter.textContent = images.length;
       }
 
       fileInput.addEventListener("change", () => {
         [...fileInput.files].forEach((file) => {
-          if (images.length >= MAX_IMAGE) return;
           const reader = new FileReader();
           reader.onload = (e) => addImage(e.target.result);
           reader.readAsDataURL(file);
@@ -241,7 +233,6 @@
         const items = e.clipboardData.items;
         for (let item of items) {
           if (item.type.includes("image")) {
-            if (images.length >= MAX_IMAGE) return;
             const file = item.getAsFile();
             const reader = new FileReader();
             reader.onload = (e) => addImage(e.target.result);
@@ -250,18 +241,11 @@
         }
       });
 
-      function showPopupAndRefresh() {
-        popup.style.opacity = "1";
-        popup.style.transform = "translateX(0)";
-
-        setTimeout(() => {
-          location.reload();
-        }, 2500);
-      }
-
-      /* Download HD dengan Deteksi Perangkat */
       async function download(type) {
-        if (images.length === 0) return alert("Pilih foto dulu ya!");
+        if (images.length === 0) return alert("Pilih foto dulu!");
+
+        const deleteButtons = document.querySelectorAll(".delete-btn");
+        deleteButtons.forEach((btn) => (btn.style.display = "none"));
 
         const canvas = await html2canvas(collageWrapper, {
           scale: 5,
@@ -270,55 +254,45 @@
         });
 
         const mime = type === "jpg" ? "image/jpeg" : "image/png";
-        const fileName = `kolase-${images.length}-foto.${type}`;
+        const fileName = `kolase-aditya-${Date.now()}.${type}`;
 
         canvas.toBlob(
           async (blob) => {
-            // 1. Cek apakah ini perangkat Mobile atau Desktop
             const isMobile = /Android|iPhone|iPad|iPod/i.test(
               navigator.userAgent,
             );
 
-            // 2. Jika Desktop & Browser mendukung API simpan file (Chrome/Edge/Opera terbaru)
             if (!isMobile && window.showSaveFilePicker) {
               try {
                 const handle = await window.showSaveFilePicker({
                   suggestedName: fileName,
-                  types: [
-                    {
-                      description: "Image File",
-                      accept: { [mime]: [`.${type}`] },
-                    },
-                  ],
+                  types: [{ accept: { [mime]: [`.${type}`] } }],
                 });
                 const writable = await handle.createWritable();
                 await writable.write(blob);
                 await writable.close();
-
-                showPopupAndRefresh(); // Tampilkan popup sukses
+                showPopup();
               } catch (err) {
-                console.log("User membatalkan pilihan folder.");
+                deleteButtons.forEach((btn) => (btn.style.display = "flex"));
               }
-            }
-            // 3. Jika Mobile atau Browser lama (Firefox/Safari Desktop tertentu)
-            else {
+            } else {
               const a = document.createElement("a");
               a.href = URL.createObjectURL(blob);
               a.download = fileName;
-              document.body.appendChild(a);
               a.click();
-              document.body.removeChild(a);
-
-              showPopupAndRefresh(); // Tampilkan popup sukses
+              showPopup();
             }
           },
           mime,
-          0.9,
+          1.0,
         );
+      }
+
+      function showPopup() {
+        popup.style.opacity = "1";
+        popup.style.transform = "translateX(0)";
+        setTimeout(() => location.reload(), 2500);
       }
     </script>
   </body>
 </html>
-
-
-
